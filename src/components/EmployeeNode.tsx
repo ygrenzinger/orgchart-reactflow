@@ -62,19 +62,20 @@ export default function EmployeeNode({ data }: EmployeeNodeProps) {
         </div>
         
         {hasChildren && (
-          <button 
-            className="expand-button"
-            onClick={handleExpandClick}
-            aria-label={isExpanded ? "Collapse" : "Expand"}
-          >
-            <span className="expand-icon">
-              {isExpanded ? "^" : "v"}{childrenCount > 0 ? childrenCount : ""}
-            </span>
-          </button>
+                <Handle type="source" position={Position.Bottom} className="handle">
+                  <button 
+                    className="expand-button"
+                    onClick={handleExpandClick}
+                    aria-label={isExpanded ? "Collapse" : "Expand"}
+                  >
+                    <span className="expand-icon">
+                      {isExpanded ? "^" : "v"}{childrenCount > 0 ? childrenCount : ""}
+                    </span>
+                  </button>
+                </Handle>
         )}
       </div>
       
-      <Handle type="source" position={Position.Bottom} className="handle" />
     </div>
   );
 }
