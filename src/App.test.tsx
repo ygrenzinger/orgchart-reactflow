@@ -2,8 +2,14 @@ import { render, screen } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import App from './App'
 
-test('renders learn react link', () => {
+test('renders org chart application', () => {
   render(<App />)
-  const linkElement = screen.getByText(/Vite \+ React/i)
-  expect(linkElement).toBeInTheDocument()
+  const headerElement = screen.getByText(/Organizational Chart/i)
+  expect(headerElement).toBeInTheDocument()
+})
+
+test('renders layout selector', () => {
+  render(<App />)
+  const selectorElement = screen.getByTitle(/Select layout algorithm/i)
+  expect(selectorElement).toBeInTheDocument()
 })

@@ -12,7 +12,9 @@ import 'reactflow/dist/style.css';
 
 import { Employee } from '../types/employee';
 import EmployeeNode from './EmployeeNode';
-import { buildOrgTree, getVisibleNodes, ExpandedState, getChildrenCount, OrgNode } from '../utils/orgChartLayout';
+import { buildOrgTree, ExpandedState, getChildrenCount, OrgNode } from '../utils/orgChartLayout';
+import { LayoutManager } from '../managers/LayoutManager';
+import { LayoutType } from '../types/layoutStrategy';
 import './OrgChart.css';
 
 interface OrgChartProps {
@@ -24,7 +26,13 @@ const nodeTypes: NodeTypes = {
 };
 
 // Component that uses useReactFlow hook inside ReactFlow context
-function OrgChartControls() {
+function OrgChartControls({ 
+  layoutManager, 
+  onLayoutChange 
+}: { 
+  layoutManager: LayoutManager; 
+  onLayoutChange: (layout: LayoutType) => void; 
+}) {
   const { fitView } = useReactFlow();
 
   const handleFitView = useCallback(() => {
@@ -59,6 +67,11 @@ function OrgChartControls() {
       });
   }, []);
 
+  const handleLayoutChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLayout = event.target.value as LayoutType;
+    onLayoutChange(newLayout);
+  }, [onLayoutChange]);
+
   // Listen for expand events and fit view
   useEffect(() => {
     const handleExpandEvent = () => {
@@ -73,6 +86,18 @@ function OrgChartControls() {
 
   return (
     <div className="org-chart-controls" style={{ position: 'absolute', top: 10, left: 10, zIndex: 1000 }}>
+      <select 
+        value={layoutManager.getCurrentStrategy()}
+        onChange={handleLayoutChange}
+        title="Select layout algorithm"
+        style={{ marginRight: '8px', padding: '4px 8px' }}
+      >
+        {layoutManager.getAvailableStrategies().map(({ type, name }) => (
+          <option key={type} value={type}>
+            {name}
+          </option>
+        ))}
+      </select>
       <button 
         className="fit-view-button"
         onClick={handleFitView}
@@ -97,6 +122,9 @@ export default function OrgChart({ employees }: OrgChartProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
+  // Initialize layout manager
+  const layoutManager = useMemo(() => new LayoutManager(LayoutType.DAGRE), []);
+
   const orgTree = useMemo(() => buildOrgTree(employees), [employees]);
 
   const toggleExpand = useCallback((employeeId: number) => {
@@ -108,10 +136,16 @@ export default function OrgChart({ employees }: OrgChartProps) {
     window.dispatchEvent(new CustomEvent('orgchart-expand'));
   }, []);
 
+  const handleLayoutChange = useCallback((layoutType: LayoutType) => {
+    layoutManager.setStrategy(layoutType);
+    // Trigger recalculation by updating a dummy state
+    window.dispatchEvent(new CustomEvent('orgchart-layout-change'));
+  }, [layoutManager]);
+
   useEffect(() => {
     if (!orgTree) return;
 
-    const { nodes: newNodes, edges: newEdges } = getVisibleNodes(orgTree, expandedState);
+    const { nodes: newNodes, edges: newEdges } = layoutManager.calculateLayout(orgTree, expandedState);
     
     // Update nodes with the toggle function and children count
     const nodesWithHandlers = newNodes.map(node => ({
@@ -125,7 +159,31 @@ export default function OrgChart({ employees }: OrgChartProps) {
 
     setNodes(nodesWithHandlers);
     setEdges(newEdges);
-  }, [orgTree, expandedState, toggleExpand, setNodes, setEdges]);
+  }, [orgTree, expandedState, toggleExpand, setNodes, setEdges, layoutManager]);
+
+  // Listen for layout changes
+  useEffect(() => {
+    const handleLayoutChangeEvent = () => {
+      if (!orgTree) return;
+
+      const { nodes: newNodes, edges: newEdges } = layoutManager.calculateLayout(orgTree, expandedState);
+      
+      const nodesWithHandlers = newNodes.map(node => ({
+        ...node,
+        data: {
+          ...node.data,
+          onToggleExpand: toggleExpand,
+          childrenCount: getChildrenCount(orgTree, parseInt(node.id))
+        }
+      }));
+
+      setNodes(nodesWithHandlers);
+      setEdges(newEdges);
+    };
+
+    window.addEventListener('orgchart-layout-change', handleLayoutChangeEvent);
+    return () => window.removeEventListener('orgchart-layout-change', handleLayoutChangeEvent);
+  }, [orgTree, expandedState, toggleExpand, setNodes, setEdges, layoutManager]);
 
   // Initial expand state - all nodes collapsed by default
   useEffect(() => {
@@ -171,7 +229,10 @@ export default function OrgChart({ employees }: OrgChartProps) {
       >
         <Background />
         <Controls />
-        <OrgChartControls />
+        <OrgChartControls 
+          layoutManager={layoutManager}
+          onLayoutChange={handleLayoutChange}
+        />
       </ReactFlow>
     </div>
   );
