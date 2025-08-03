@@ -4,7 +4,8 @@ import ReactFlow, {
   Controls, 
   useNodesState,
   useEdgesState,
-  NodeTypes
+  NodeTypes,
+  useReactFlow
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -21,6 +22,39 @@ const nodeTypes: NodeTypes = {
   employee: EmployeeNode,
 };
 
+// Component that uses useReactFlow hook inside ReactFlow context
+function OrgChartControls() {
+  const { fitView } = useReactFlow();
+
+  const handleFitView = useCallback(() => {
+    fitView({ duration: 500, padding: 0.1 });
+  }, [fitView]);
+
+  // Listen for expand events and fit view
+  useEffect(() => {
+    const handleExpandEvent = () => {
+      setTimeout(() => {
+        fitView({ duration: 500, padding: 0.1 });
+      }, 100);
+    };
+    
+    window.addEventListener('orgchart-expand', handleExpandEvent);
+    return () => window.removeEventListener('orgchart-expand', handleExpandEvent);
+  }, [fitView]);
+
+  return (
+    <div className="org-chart-controls" style={{ position: 'absolute', top: 10, left: 10, zIndex: 1000 }}>
+      <button 
+        className="fit-view-button"
+        onClick={handleFitView}
+        title="Fit all nodes in view"
+      >
+        📐 Fit View
+      </button>
+    </div>
+  );
+}
+
 export default function OrgChart({ employees }: OrgChartProps) {
   const [expandedState, setExpandedState] = useState<ExpandedState>({});
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -33,6 +67,8 @@ export default function OrgChart({ employees }: OrgChartProps) {
       ...prev,
       [employeeId]: !prev[employeeId]
     }));
+    // Dispatch event for fitView
+    window.dispatchEvent(new CustomEvent('orgchart-expand'));
   }, []);
 
   useEffect(() => {
@@ -92,6 +128,7 @@ export default function OrgChart({ employees }: OrgChartProps) {
       >
         <Background />
         <Controls />
+        <OrgChartControls />
       </ReactFlow>
     </div>
   );
