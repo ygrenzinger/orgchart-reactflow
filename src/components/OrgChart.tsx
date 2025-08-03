@@ -117,10 +117,12 @@ export default function OrgChart({ employees }: OrgChartProps) {
         fitView
         fitViewOptions={{
           padding: 0.1,
-          minZoom: 0.1,
+          minZoom: 0.01,
           maxZoom: 2.0,
           includeHiddenNodes: false
         }}
+        minZoom={0.01}
+        maxZoom={2.0}
         defaultViewport={{ x: 0, y: 0, zoom: 1.0 }}
         nodesDraggable={false}
         nodesConnectable={false}
