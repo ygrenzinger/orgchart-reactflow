@@ -7,6 +7,7 @@ import ReactFlow, {
   NodeTypes,
   useReactFlow
 } from 'reactflow';
+import { toPng } from 'html-to-image';
 import 'reactflow/dist/style.css';
 
 import { Employee } from '../types/employee';
@@ -30,6 +31,34 @@ function OrgChartControls() {
     fitView({ duration: 500, padding: 0.1 });
   }, [fitView]);
 
+  const downloadImage = useCallback(() => {
+    const viewport = document.querySelector('.react-flow__viewport') as HTMLElement;
+    
+    if (!viewport) {
+      console.error('Could not find ReactFlow viewport');
+      return;
+    }
+
+    toPng(viewport, {
+      backgroundColor: '#ffffff',
+      width: viewport.offsetWidth,
+      height: viewport.offsetHeight,
+      style: {
+        width: viewport.offsetWidth + 'px',
+        height: viewport.offsetHeight + 'px',
+      },
+    })
+      .then((dataUrl) => {
+        const link = document.createElement('a');
+        link.download = 'orgchart.png';
+        link.href = dataUrl;
+        link.click();
+      })
+      .catch((error) => {
+        console.error('Error generating image:', error);
+      });
+  }, []);
+
   // Listen for expand events and fit view
   useEffect(() => {
     const handleExpandEvent = () => {
@@ -48,8 +77,16 @@ function OrgChartControls() {
         className="fit-view-button"
         onClick={handleFitView}
         title="Fit all nodes in view"
+        style={{ marginRight: '8px' }}
       >
         📐 Fit View
+      </button>
+      <button 
+        className="download-button"
+        onClick={downloadImage}
+        title="Download as PNG"
+      >
+        📷 Export PNG
       </button>
     </div>
   );
