@@ -3,7 +3,7 @@ export interface Employee {
   parentId: number | null;
   name: string;
   lastName: string;
-  position: string;
+  position: string | null;
   salary: number;
   department_id: number;
   department_name: string;

@@ -58,7 +58,7 @@ export default function EmployeeNode({ data }: EmployeeNodeProps) {
         
         <div className="employee-info">
           <h3 className="employee-name">{employee.name}</h3>
-          <p className="employee-position">{employee.position}</p>
+          <p className="employee-position">{employee.position || ""}</p>
         </div>
         
         {hasChildren && (
