@@ -61,34 +61,59 @@ export function getVisibleNodes(
   const HORIZONTAL_SPACING = 60;
   const VERTICAL_SPACING = 100;
 
-  // Calculate layout for each node
-  function calculateLayout(node: OrgNode): TreeLayout {
-    const isExpanded = expandedState[node.employee.id] ?? true;
-    const hasChildren = node.children.length > 0;
+  // First, collect all visible nodes (nodes whose parents are expanded)
+  function collectVisibleNodes(node: OrgNode, isVisible: boolean = true): OrgNode[] {
+    const visibleNodes: OrgNode[] = [];
+    
+    if (isVisible) {
+      visibleNodes.push(node);
+    }
+    
+    // Only show children if this node is expanded and visible
+    const isExpanded = expandedState[node.employee.id] ?? false;
+    if (isVisible && isExpanded) {
+      // Only show immediate children (first level)
+      node.children.forEach(child => {
+        visibleNodes.push(...collectVisibleNodes(child, true));
+      });
+    }
+    
+    return visibleNodes;
+  }
 
-    if (!isExpanded || !hasChildren) {
+  // Calculate layout for visible nodes only
+  function calculateLayoutForVisible(node: OrgNode, visibleNodes: OrgNode[]): TreeLayout {
+    const isExpanded = expandedState[node.employee.id] ?? false;
+    const hasChildren = node.children.length > 0;
+    
+    // Only consider immediate children that are visible
+    const visibleChildren = node.children.filter(child => 
+      visibleNodes.some(vNode => vNode.employee.id === child.employee.id)
+    );
+
+    if (!isExpanded || !hasChildren || visibleChildren.length === 0) {
       return { x: 0, y: 0, width: NODE_WIDTH };
     }
 
-    // Calculate layout for children first
-    const childLayouts = node.children.map(child => calculateLayout(child));
-    
-    // Calculate total width needed for all children
-    const totalChildrenWidth = childLayouts.reduce((sum, layout, index) => {
-      return sum + layout.width + (index > 0 ? HORIZONTAL_SPACING : 0);
-    }, 0);
+    // Calculate width needed for visible children only
+    const childrenWidth = visibleChildren.length * NODE_WIDTH + (visibleChildren.length - 1) * HORIZONTAL_SPACING;
 
-    // Return layout with width being the maximum of node width or children width
     return {
       x: 0,
       y: 0,
-      width: Math.max(NODE_WIDTH, totalChildrenWidth)
+      width: Math.max(NODE_WIDTH, childrenWidth)
     };
   }
 
-  // Position nodes based on calculated layout
-  function positionNodes(node: OrgNode, parentX: number, parentY: number, layout: TreeLayout) {
-    const isExpanded = expandedState[node.employee.id] ?? true;
+  // Get all visible nodes
+  const visibleNodesList = collectVisibleNodes(orgTree);
+
+  // Create a map for quick lookup
+  const visibleNodesMap = new Map(visibleNodesList.map(node => [node.employee.id, node]));
+
+  // Position visible nodes
+  function positionVisibleNodes(node: OrgNode, parentX: number, parentY: number, layout: TreeLayout) {
+    const isExpanded = expandedState[node.employee.id] ?? false;
     const hasChildren = node.children.length > 0;
 
     // Position this node at the center of its allocated space
@@ -107,23 +132,21 @@ export function getVisibleNodes(
       }
     });
 
-    if (!isExpanded || !hasChildren) {
+    // Only show immediate children if expanded
+    const visibleChildren = node.children.filter(child => 
+      visibleNodesMap.has(child.employee.id)
+    );
+
+    if (!isExpanded || !hasChildren || visibleChildren.length === 0) {
       return;
     }
 
-    // Calculate child positions
-    const childLayouts = node.children.map(child => calculateLayout(child));
-    const totalChildrenWidth = childLayouts.reduce((sum, layout, index) => {
-      return sum + layout.width + (index > 0 ? HORIZONTAL_SPACING : 0);
-    }, 0);
-
-    // Start positioning children from the left
-    let currentX = parentX + (layout.width - totalChildrenWidth) / 2;
+    // Calculate positions for visible children
+    const childrenWidth = visibleChildren.length * NODE_WIDTH + (visibleChildren.length - 1) * HORIZONTAL_SPACING;
+    let currentX = parentX + (layout.width - childrenWidth) / 2;
     const childY = parentY + NODE_HEIGHT + VERTICAL_SPACING;
 
-    node.children.forEach((child, index) => {
-      const childLayout = childLayouts[index];
-      
+    visibleChildren.forEach((child) => {
       // Create edge
       edges.push({
         id: `${node.employee.id}-${child.employee.id}`,
@@ -137,19 +160,20 @@ export function getVisibleNodes(
         }
       });
 
+      // Calculate layout for this child
+      const childLayout = calculateLayoutForVisible(child, visibleNodesList);
+      
       // Position child
-      positionNodes(child, currentX, childY, childLayout);
+      positionVisibleNodes(child, currentX, childY, childLayout);
       
       // Move to next child position
-      currentX += childLayout.width + HORIZONTAL_SPACING;
+      currentX += Math.max(NODE_WIDTH, childLayout.width) + HORIZONTAL_SPACING;
     });
   }
 
-  // Calculate layout starting from root
-  const rootLayout = calculateLayout(orgTree);
-  
-  // Position nodes starting from root
-  positionNodes(orgTree, 0, 0, rootLayout);
+  // Calculate layout and position nodes
+  const rootLayout = calculateLayoutForVisible(orgTree, visibleNodesList);
+  positionVisibleNodes(orgTree, 0, 0, rootLayout);
 
   return { nodes, edges };
 }

@@ -11,7 +11,7 @@ import 'reactflow/dist/style.css';
 
 import { Employee } from '../types/employee';
 import EmployeeNode from './EmployeeNode';
-import { buildOrgTree, getVisibleNodes, ExpandedState, getChildrenCount } from '../utils/orgChartLayout';
+import { buildOrgTree, getVisibleNodes, ExpandedState, getChildrenCount, OrgNode } from '../utils/orgChartLayout';
 import './OrgChart.css';
 
 interface OrgChartProps {
@@ -95,9 +95,13 @@ export default function OrgChart({ employees }: OrgChartProps) {
     if (orgTree && Object.keys(expandedState).length === 0) {
       const initialExpanded: ExpandedState = {};
       
-      // Only show CEO node, all others collapsed
-      initialExpanded[orgTree.employee.id] = false;
+      // Initialize all nodes as collapsed
+      function initializeExpandedState(node: OrgNode) {
+        initialExpanded[node.employee.id] = false;
+        node.children.forEach(child => initializeExpandedState(child));
+      }
       
+      initializeExpandedState(orgTree);
       setExpandedState(initialExpanded);
     }
   }, [orgTree, expandedState]);
