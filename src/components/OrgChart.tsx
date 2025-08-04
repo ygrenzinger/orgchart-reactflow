@@ -15,7 +15,7 @@ import { Employee } from '../types/employee';
 import EmployeeNode from './EmployeeNode';
 import { buildOrgTree, ExpandedState, getChildrenCount, OrgNode } from '../utils/orgChartLayout';
 import { LayoutManager } from '../managers/LayoutManager';
-import { LayoutType } from '../types/layoutStrategy';
+import { LayoutOrientation } from '../types/layoutStrategy';
 import './OrgChart.css';
 
 interface OrgChartProps {
@@ -29,10 +29,10 @@ const nodeTypes: NodeTypes = {
 // Component that uses useReactFlow hook inside ReactFlow context
 function OrgChartControls({ 
   layoutManager, 
-  onLayoutChange 
+  onOrientationChange 
 }: { 
   layoutManager: LayoutManager; 
-  onLayoutChange: (layout: LayoutType) => void; 
+  onOrientationChange: (orientation: LayoutOrientation) => void; 
 }) {
   const { fitView } = useReactFlow();
 
@@ -68,10 +68,10 @@ function OrgChartControls({
       });
   }, []);
 
-  const handleLayoutChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLayout = event.target.value as LayoutType;
-    onLayoutChange(newLayout);
-  }, [onLayoutChange]);
+  const handleOrientationChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newOrientation = event.target.value as LayoutOrientation;
+    onOrientationChange(newOrientation);
+  }, [onOrientationChange]);
 
   // Listen for expand events and fit view
   useEffect(() => {
@@ -88,13 +88,13 @@ function OrgChartControls({
   return (
     <div className="org-chart-controls" style={{ position: 'absolute', top: 10, left: 10, zIndex: 1000 }}>
       <select 
-        value={layoutManager.getCurrentStrategy()}
-        onChange={handleLayoutChange}
-        title="Select layout algorithm"
+        value={layoutManager.getCurrentOrientation()}
+        onChange={handleOrientationChange}
+        title="Select layout orientation"
         style={{ marginRight: '8px', padding: '4px 8px' }}
       >
-        {layoutManager.getAvailableStrategies().map(({ type, name }) => (
-          <option key={type} value={type}>
+        {layoutManager.getAvailableOrientations().map(({ orientation, name }) => (
+          <option key={orientation} value={orientation}>
             {name}
           </option>
         ))}
@@ -124,7 +124,7 @@ export default function OrgChart({ employees }: OrgChartProps) {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   // Initialize layout manager
-  const layoutManager = useMemo(() => new LayoutManager(LayoutType.DAGRE), []);
+  const layoutManager = useMemo(() => new LayoutManager('vertical'), []);
 
   const orgTree = useMemo(() => buildOrgTree(employees), [employees]);
 
@@ -137,8 +137,8 @@ export default function OrgChart({ employees }: OrgChartProps) {
     window.dispatchEvent(new CustomEvent('orgchart-expand'));
   }, []);
 
-  const handleLayoutChange = useCallback((layoutType: LayoutType) => {
-    layoutManager.setStrategy(layoutType);
+  const handleOrientationChange = useCallback((orientation: LayoutOrientation) => {
+    layoutManager.setOrientation(orientation);
     // Trigger recalculation by updating a dummy state
     window.dispatchEvent(new CustomEvent('orgchart-layout-change'));
   }, [layoutManager]);
@@ -233,7 +233,7 @@ export default function OrgChart({ employees }: OrgChartProps) {
         <MiniMap />
         <OrgChartControls 
           layoutManager={layoutManager}
-          onLayoutChange={handleLayoutChange}
+          onOrientationChange={handleOrientationChange}
         />
       </ReactFlow>
     </div>

@@ -1,63 +1,52 @@
 import {
-  LayoutStrategy,
-  LayoutType,
   LayoutResult,
+  LayoutOrientation,
 } from "../types/layoutStrategy";
 import { DagreLayoutStrategy } from "../strategies/DagreLayoutStrategy";
-import { HorizontalDagreLayoutStrategy } from "../strategies/HorizontalDagreLayoutStrategy.ts";
 import { OrgNode, ExpandedState } from "../utils/orgChartLayout";
+import { BaseLayoutProcessor } from "../processors/BaseLayoutProcessor";
 
 export class LayoutManager {
-  private strategies: Map<LayoutType, LayoutStrategy>;
-  private currentStrategy: LayoutType;
+  private layoutStrategy: DagreLayoutStrategy;
+  private currentOrientation: LayoutOrientation;
+  private processor: BaseLayoutProcessor;
 
-  constructor(defaultStrategy: LayoutType = LayoutType.DAGRE) {
-    this.strategies = new Map();
-    this.currentStrategy = defaultStrategy;
-
-    // Register available strategies
-    this.registerStrategy(LayoutType.DAGRE, new DagreLayoutStrategy());
-    this.registerStrategy(LayoutType.SIMPLE_DAGRE, new HorizontalDagreLayoutStrategy());
+  constructor(defaultOrientation: LayoutOrientation = 'vertical') {
+    this.layoutStrategy = new DagreLayoutStrategy();
+    this.currentOrientation = defaultOrientation;
+    this.processor = new BaseLayoutProcessor();
   }
 
-  private registerStrategy(type: LayoutType, strategy: LayoutStrategy): void {
-    this.strategies.set(type, strategy);
+  setOrientation(orientation: LayoutOrientation): void {
+    this.currentOrientation = orientation;
   }
 
-  setStrategy(strategyType: LayoutType): void {
-    if (!this.strategies.has(strategyType)) {
-      throw new Error(`Layout strategy '${strategyType}' is not registered`);
-    }
-    this.currentStrategy = strategyType;
+  getCurrentOrientation(): LayoutOrientation {
+    return this.currentOrientation;
   }
 
-  getCurrentStrategy(): LayoutType {
-    return this.currentStrategy;
+  getCurrentOrientationName(): string {
+    return this.currentOrientation === 'vertical' ? 'Vertical Layout' : 'Horizontal Layout';
   }
 
-  getCurrentStrategyName(): string {
-    const strategy = this.strategies.get(this.currentStrategy);
-    return strategy?.name || "Unknown";
-  }
-
-  getAvailableStrategies(): Array<{ type: LayoutType; name: string }> {
-    return Array.from(this.strategies.entries()).map(([type, strategy]) => ({
-      type,
-      name: strategy.name,
-    }));
+  getAvailableOrientations(): Array<{ orientation: LayoutOrientation; name: string }> {
+    return [
+      { orientation: 'vertical', name: 'Vertical Layout' },
+      { orientation: 'horizontal', name: 'Horizontal Layout' },
+    ];
   }
 
   calculateLayout(
     orgTree: OrgNode,
     expandedState: ExpandedState
   ): LayoutResult {
-    const strategy = this.strategies.get(this.currentStrategy);
-    if (!strategy) {
-      throw new Error(
-        `Layout strategy '${this.currentStrategy}' is not available`
-      );
-    }
+    if (!orgTree) return { nodes: [], edges: [] };
 
-    return strategy.calculateLayout(orgTree, expandedState);
+    // Step 1: Use processor to collect visible nodes and create nodes/edges
+    const visibleNodes = this.processor.collectVisibleNodes(orgTree, expandedState);
+    const { nodes, edges } = this.processor.createNodesAndEdges(visibleNodes, expandedState);
+
+    // Step 2: Apply layout with current orientation
+    return this.layoutStrategy.applyLayout(nodes, edges, this.currentOrientation);
   }
 }

@@ -10,6 +10,6 @@ test('renders org chart application', () => {
 
 test('renders layout selector', () => {
   render(<App />)
-  const selectorElement = screen.getByTitle(/Select layout algorithm/i)
+  const selectorElement = screen.getByTitle(/Select layout orientation/i)
   expect(selectorElement).toBeInTheDocument()
 })
