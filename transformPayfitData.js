@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 // Read the PayFit data
-const payfitData = JSON.parse(fs.readFileSync('./src/data/payfit.json', 'utf8'));
+const payfitData = JSON.parse(fs.readFileSync('./src/data/original-payfit.json', 'utf8'));
 
 // Get the company data (assuming there's only one company)
 const companyId = Object.keys(payfitData)[0];
@@ -21,40 +21,6 @@ const uuidToNumericId = (() => {
   };
 })();
 
-// Helper function to generate random salary based on job title
-const generateSalary = (jobName) => {
-  if (!jobName) {
-    return Math.floor(Math.random() * (80000 - 40000 + 1)) + 40000;
-  }
-  
-  const salaryRanges = {
-    'CEO': [150000, 250000],
-    'CTO': [130000, 200000],
-    'VP': [120000, 180000],
-    'Director': [100000, 150000],
-    'Manager': [80000, 120000],
-    'Senior': [70000, 100000],
-    'Lead': [75000, 110000],
-    'Engineer': [60000, 90000],
-    'Developer': [55000, 85000],
-    'Analyst': [50000, 75000],
-    'Specialist': [45000, 70000],
-    'Coordinator': [40000, 60000],
-    'Assistant': [35000, 50000],
-    'Intern': [25000, 40000]
-  };
-  
-  // Find matching salary range based on job title keywords
-  for (const [keyword, range] of Object.entries(salaryRanges)) {
-    if (jobName.toLowerCase().includes(keyword.toLowerCase())) {
-      const [min, max] = range;
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-  }
-  
-  // Default salary range
-  return Math.floor(Math.random() * (80000 - 40000 + 1)) + 40000;
-};
 
 // Create department mapping
 const departmentMap = new Map();
@@ -72,16 +38,32 @@ departmentMap.set(defaultDeptId, {
   name: 'General'
 });
 
-// Transform collaborators to employees
+// Transform collaborators to employees (filter out those without parent and no children)
 const employees = [];
+
+// First pass: identify collaborators with children
+const collaboratorsWithChildren = new Set();
 Object.values(company.collaborators.byId).forEach(collaborator => {
+  if (collaborator.managerId) {
+    collaboratorsWithChildren.add(collaborator.managerId);
+  }
+});
+
+Object.values(company.collaborators.byId).forEach(collaborator => {
+  // Filter out collaborators without parent and no children
+  const hasParent = collaborator.managerId !== null && collaborator.managerId !== undefined;
+  const hasChildren = collaboratorsWithChildren.has(collaborator.id);
+  
+  if (!hasParent && !hasChildren) {
+    return; // Skip this collaborator
+  }
+  
   const employee = {
     id: uuidToNumericId(collaborator.id),
     parentId: collaborator.managerId ? uuidToNumericId(collaborator.managerId) : null,
     name: collaborator.firstName,
     lastName: collaborator.lastName,
     position: collaborator.jobName,
-    salary: generateSalary(collaborator.jobName),
     department_id: collaborator.teamId ? 
       (departmentMap.has(collaborator.teamId) ? departmentMap.get(collaborator.teamId).id : departmentMap.get(defaultDeptId).id) :
       departmentMap.get(defaultDeptId).id,

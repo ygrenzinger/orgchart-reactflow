@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import ReactFlow, { 
   Background, 
-  Controls, 
+  Controls,
+  MiniMap, 
   useNodesState,
   useEdgesState,
   NodeTypes,
@@ -229,6 +230,7 @@ export default function OrgChart({ employees }: OrgChartProps) {
       >
         <Background />
         <Controls />
+        <MiniMap />
         <OrgChartControls 
           layoutManager={layoutManager}
           onLayoutChange={handleLayoutChange}
