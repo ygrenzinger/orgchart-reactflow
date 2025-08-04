@@ -3,8 +3,8 @@ import {
   LayoutType,
   LayoutResult,
 } from "../types/layoutStrategy";
-import { CustomLayoutStrategy } from "../strategies/CustomLayoutStrategy";
 import { DagreLayoutStrategy } from "../strategies/DagreLayoutStrategy";
+import { HorizontalDagreLayoutStrategy } from "../strategies/HorizontalDagreLayoutStrategy.ts";
 import { OrgNode, ExpandedState } from "../utils/orgChartLayout";
 
 export class LayoutManager {
@@ -16,8 +16,8 @@ export class LayoutManager {
     this.currentStrategy = defaultStrategy;
 
     // Register available strategies
-    this.registerStrategy(LayoutType.CUSTOM, new CustomLayoutStrategy());
     this.registerStrategy(LayoutType.DAGRE, new DagreLayoutStrategy());
+    this.registerStrategy(LayoutType.SIMPLE_DAGRE, new HorizontalDagreLayoutStrategy());
   }
 
   private registerStrategy(type: LayoutType, strategy: LayoutStrategy): void {

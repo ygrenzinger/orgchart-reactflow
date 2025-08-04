@@ -12,6 +12,6 @@ export interface LayoutStrategy {
 }
 
 export enum LayoutType {
-  CUSTOM = 'custom',
-  DAGRE = 'dagre'
+  DAGRE = 'dagre',
+  SIMPLE_DAGRE = 'simple-dagre'
 }
