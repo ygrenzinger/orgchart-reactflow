@@ -1,6 +1,6 @@
 import OrgChart from './components/OrgChart'
 import { Employee } from './types/employee'
-import mockEmployees from './data/mockPayfitEmployee.json'
+import mockEmployees from './data/mockOrgChart.json'
 import './App.css'
 
 function App() {
