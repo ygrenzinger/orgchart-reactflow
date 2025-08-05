@@ -11,11 +11,13 @@ interface EmployeeNodeProps {
     childrenCount?: number;
     orientation: LayoutOrientation;
     onToggleExpand: (employeeId: number) => void;
+    isSearchMatch?: boolean;
+    isSearchParent?: boolean;
   };
 }
 
 export default function EmployeeNode({ data }: EmployeeNodeProps) {
-  const { employee, isExpanded, hasChildren, childrenCount = 0, orientation, onToggleExpand } = data;
+  const { employee, isExpanded, hasChildren, childrenCount = 0, orientation, onToggleExpand, isSearchMatch = false, isSearchParent = false } = data;
   
   const handleExpandClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -58,8 +60,15 @@ export default function EmployeeNode({ data }: EmployeeNodeProps) {
 
   const handlePositions = getHandlePositions();
 
+  // Build CSS classes for search highlighting
+  const nodeClasses = [
+    'employee-node',
+    isSearchMatch && 'search-match',
+    isSearchParent && 'search-parent'
+  ].filter(Boolean).join(' ');
+
   return (
-    <div className="employee-node">
+    <div className={nodeClasses}>
       <Handle type="target" position={handlePositions.target} className="handle" />
       
       <div className="employee-card">

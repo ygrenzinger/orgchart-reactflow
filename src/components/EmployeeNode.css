@@ -106,3 +106,23 @@
 .handle.react-flow__handle-bottom {
   bottom: -4px;
 }
+
+/* Search highlighting styles */
+.employee-node.search-match .employee-card {
+  box-shadow: 0 0 0 3px #007bff, 0 4px 16px rgba(0, 123, 255, 0.3);
+  background: #e3f2fd;
+}
+
+.employee-node.search-parent .employee-card {
+  box-shadow: 0 0 0 2px #28a745, 0 4px 16px rgba(40, 167, 69, 0.2);
+  background: #f8fff9;
+}
+
+.employee-node.search-match .employee-name {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.employee-node.search-parent .employee-name {
+  color: #28a745;
+}

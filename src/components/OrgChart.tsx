@@ -25,6 +25,10 @@ export default function OrgChart({ employees }: OrgChartProps) {
             onEdgesChange={controllerState.onEdgesChange}
             layoutEngine={controllerState.layoutEngine}
             onOrientationChange={controllerState.handleOrientationChange}
+            searchQuery={controllerState.searchQuery}
+            searchResults={controllerState.searchResults}
+            onSearch={controllerState.handleSearch}
+            onClearSearch={controllerState.clearSearch}
           />
         );
       }}

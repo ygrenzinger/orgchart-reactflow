@@ -13,6 +13,7 @@ import { toPng } from 'html-to-image';
 import 'reactflow/dist/style.css';
 
 import EmployeeNode from '../components/EmployeeNode';
+import SearchBar from '../components/SearchBar';
 import { LayoutEngine } from '../layout/LayoutEngine';
 import { LayoutOrientation } from '../types/layoutStrategy';
 import '../components/OrgChart.css';
@@ -93,6 +94,10 @@ interface OrgChartRendererProps {
   onEdgesChange: (changes: EdgeChange[]) => void;
   layoutEngine: LayoutEngine;
   onOrientationChange: (orientation: LayoutOrientation) => void;
+  searchQuery: string;
+  searchResults: Set<number>;
+  onSearch: (query: string) => void;
+  onClearSearch: () => void;
 }
 
 export function OrgChartRenderer({
@@ -101,7 +106,11 @@ export function OrgChartRenderer({
   onNodesChange,
   onEdgesChange,
   layoutEngine,
-  onOrientationChange
+  onOrientationChange,
+  searchQuery,
+  searchResults,
+  onSearch,
+  onClearSearch
 }: OrgChartRendererProps) {
   return (
     <div className="org-chart-container">
@@ -131,6 +140,12 @@ export function OrgChartRenderer({
         <OrgChartControls 
           layoutEngine={layoutEngine}
           onOrientationChange={onOrientationChange}
+        />
+        <SearchBar
+          searchQuery={searchQuery}
+          resultsCount={searchResults.size}
+          onSearch={onSearch}
+          onClear={onClearSearch}
         />
       </ReactFlow>
     </div>
