@@ -21,10 +21,21 @@ export class OrgTreeBuilder {
       }
     });
 
+    // Sort children for stable ordering
+    childrenMap.forEach((children) => {
+      children.sort(this.getSortingRule());
+    });
+
     const ceo = employees.find(emp => emp.parentId === null);
     if (!ceo) return null;
 
     return this.buildNode(ceo, childrenMap, 0);
+  }
+
+  private getSortingRule(): (a: Employee, b: Employee) => number {
+    // Current rule: sort by ID for stable ordering
+    // Can be easily changed to other business rules like name, position, etc.
+    return (a: Employee, b: Employee) => a.id - b.id;
   }
 
   private buildNode(employee: Employee, childrenMap: Map<number, Employee[]>, level: number): OrgTree {
