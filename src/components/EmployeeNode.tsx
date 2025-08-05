@@ -77,14 +77,12 @@ export default function EmployeeNode({ data }: EmployeeNodeProps) {
             className="employee-avatar"
             style={{ backgroundColor: getDepartmentColor(employee.department_name) }}
           >
-            {getInitials(employee.name, employee.lastName)}
+            {getInitials(employee.firstName, employee.lastName)}
           </div>
-          <div className="employee-id">#{employee.id}</div>
-        </div>
-        
-        <div className="employee-info">
-          <h3 className="employee-name">{employee.name}</h3>
-          <p className="employee-position">{employee.position || ""}</p>
+          <div className="employee-info">
+            <h3 className="employee-name">{employee.firstName} {employee.lastName}</h3>
+            <p className="employee-position">{employee.position || ""}</p>
+          </div>
         </div>
         
         {hasChildren && (

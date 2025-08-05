@@ -69,7 +69,7 @@ export function OrgChartController({ employees, children }: OrgChartControllerPr
     const results = new Set<number>();
     
     employees.forEach(employee => {
-      const fullName = `${employee.name} ${employee.lastName}`.toLowerCase();
+      const fullName = `${employee.firstName} ${employee.lastName}`.toLowerCase();
       if (fullName.includes(normalizedQuery)) {
         results.add(employee.id);
       }
