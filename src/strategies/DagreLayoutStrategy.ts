@@ -1,10 +1,9 @@
 import dagre from "dagre";
 import { Node, Edge } from "reactflow";
 import { LayoutResult, LayoutOrientation } from "../types/layoutStrategy";
+import { LAYOUT_CONFIG } from "../layout/LayoutConstants";
 
 export class DagreLayoutStrategy {
-  private readonly NODE_WIDTH = 280;
-  private readonly NODE_HEIGHT = 120;
 
   applyLayout(nodes: Node[], edges: Edge[], orientation: LayoutOrientation = 'vertical'): LayoutResult {
     const dagreGraph = new dagre.graphlib.Graph();
@@ -13,27 +12,27 @@ export class DagreLayoutStrategy {
     // Configure the layout based on orientation
     if (orientation === 'horizontal') {
       dagreGraph.setGraph({
-        rankdir: "LR", // Left to Right (horizontal)
-        nodesep: 50,   // Horizontal spacing between nodes at same level
-        ranksep: 150,  // Spacing between levels (now vertical since we're horizontal)
-        marginx: 50,   // Margin around the graph
-        marginy: 50,
+        rankdir: LAYOUT_CONFIG.DAGRE.HORIZONTAL.RANKDIR,
+        nodesep: LAYOUT_CONFIG.DAGRE.HORIZONTAL.NODESEP,
+        ranksep: LAYOUT_CONFIG.DAGRE.HORIZONTAL.RANKSEP,
+        marginx: LAYOUT_CONFIG.MARGINS.X,
+        marginy: LAYOUT_CONFIG.MARGINS.Y,
       });
     } else {
       dagreGraph.setGraph({
-        rankdir: "TB", // Top to Bottom (vertical)
-        nodesep: 60,   // Horizontal spacing between nodes
-        ranksep: 100,  // Vertical spacing between ranks
-        marginx: 50,   // Margin around the graph
-        marginy: 50,
+        rankdir: LAYOUT_CONFIG.DAGRE.VERTICAL.RANKDIR,
+        nodesep: LAYOUT_CONFIG.DAGRE.VERTICAL.NODESEP,
+        ranksep: LAYOUT_CONFIG.DAGRE.VERTICAL.RANKSEP,
+        marginx: LAYOUT_CONFIG.MARGINS.X,
+        marginy: LAYOUT_CONFIG.MARGINS.Y,
       });
     }
 
     // Add nodes to dagre graph
     nodes.forEach((node) => {
       dagreGraph.setNode(node.id, {
-        width: this.NODE_WIDTH,
-        height: this.NODE_HEIGHT,
+        width: LAYOUT_CONFIG.NODE.WIDTH,
+        height: LAYOUT_CONFIG.NODE.HEIGHT,
       });
     });
 
@@ -51,8 +50,8 @@ export class DagreLayoutStrategy {
       return {
         ...node,
         position: {
-          x: nodeWithPosition.x - this.NODE_WIDTH / 2,
-          y: nodeWithPosition.y - this.NODE_HEIGHT / 2,
+          x: nodeWithPosition.x - LAYOUT_CONFIG.NODE.WIDTH / 2,
+          y: nodeWithPosition.y - LAYOUT_CONFIG.NODE.HEIGHT / 2,
         },
       };
     });

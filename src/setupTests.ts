@@ -1,8 +1,7 @@
 import '@testing-library/jest-dom'
 
 // Mock ResizeObserver for ReactFlow
-/*
-global.ResizeObserver = class ResizeObserver {
+(window as unknown as { ResizeObserver: typeof ResizeObserver }).ResizeObserver = class ResizeObserver {
   constructor(callback: ResizeObserverCallback) {
     this.callback = callback;
   }
@@ -11,4 +10,3 @@ global.ResizeObserver = class ResizeObserver {
   unobserve() {}
   disconnect() {}
 };
- */
