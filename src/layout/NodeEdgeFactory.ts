@@ -1,9 +1,10 @@
 import { Node, Edge, MarkerType } from "reactflow";
 import { OrgTree } from "../domain/OrgTreeBuilder";
 import { ExpandedState } from "../domain/VisibilityCalculator";
+import { LayoutOrientation } from "../types/layoutStrategy";
 
 export class NodeEdgeFactory {
-  createNodes(visibleNodes: OrgTree[], expandedState: ExpandedState): Node[] {
+  createNodes(visibleNodes: OrgTree[], expandedState: ExpandedState, orientation: LayoutOrientation): Node[] {
     return visibleNodes.map((node) => {
       const isExpanded = expandedState[node.employee.id] ?? false;
       const hasChildren = node.children.length > 0;
@@ -16,6 +17,7 @@ export class NodeEdgeFactory {
           employee: node.employee,
           isExpanded,
           hasChildren,
+          orientation,
           onToggleExpand: () => {}, // Will be set in the controller
         },
       };

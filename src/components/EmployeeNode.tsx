@@ -1,5 +1,6 @@
 import { Handle, Position } from 'reactflow';
 import { Employee } from '../types/employee';
+import { LayoutOrientation } from '../types/layoutStrategy';
 import './EmployeeNode.css';
 
 interface EmployeeNodeProps {
@@ -8,12 +9,13 @@ interface EmployeeNodeProps {
     isExpanded: boolean;
     hasChildren: boolean;
     childrenCount?: number;
+    orientation: LayoutOrientation;
     onToggleExpand: (employeeId: number) => void;
   };
 }
 
 export default function EmployeeNode({ data }: EmployeeNodeProps) {
-  const { employee, isExpanded, hasChildren, childrenCount = 0, onToggleExpand } = data;
+  const { employee, isExpanded, hasChildren, childrenCount = 0, orientation, onToggleExpand } = data;
   
   const handleExpandClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -41,9 +43,24 @@ export default function EmployeeNode({ data }: EmployeeNodeProps) {
     return colors[departmentName] || '#e0e0e0';
   };
 
+  const getHandlePositions = () => {
+    if (orientation === 'horizontal') {
+      return {
+        target: Position.Left,
+        source: Position.Right
+      };
+    }
+    return {
+      target: Position.Top,
+      source: Position.Bottom
+    };
+  };
+
+  const handlePositions = getHandlePositions();
+
   return (
     <div className="employee-node">
-      <Handle type="target" position={Position.Top} className="handle" />
+      <Handle type="target" position={handlePositions.target} className="handle" />
       
       <div className="employee-card">
         <div className="employee-header">
@@ -62,7 +79,7 @@ export default function EmployeeNode({ data }: EmployeeNodeProps) {
         </div>
         
         {hasChildren && (
-                <Handle type="source" position={Position.Bottom} className="handle">
+                <Handle type="source" position={handlePositions.source} className="handle">
                   <button 
                     className="expand-button"
                     onClick={handleExpandClick}

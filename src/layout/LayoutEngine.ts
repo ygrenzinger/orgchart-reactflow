@@ -47,7 +47,7 @@ export class LayoutEngine {
     const visibleNodes = this.visibilityCalculator.calculateVisibleNodes(orgTree, expandedState);
     
     // Step 2: Create ReactFlow nodes and edges
-    const nodes = this.nodeEdgeFactory.createNodes(visibleNodes, expandedState);
+    const nodes = this.nodeEdgeFactory.createNodes(visibleNodes, expandedState, this.currentOrientation);
     const edges = this.nodeEdgeFactory.createEdges(visibleNodes, expandedState);
 
     // Step 3: Apply layout strategy with current orientation
