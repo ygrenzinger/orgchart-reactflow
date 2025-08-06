@@ -20,7 +20,7 @@ This project is configured to automatically deploy to GitHub Pages when changes 
 3. Under "Source", select "GitHub Actions"
 4. Push changes to the main branch to trigger deployment
 
-The site will be available at: `https://[username].github.io/orgchart-reactflow/`
+The site will be available at: https://ygrenzinger.github.io/orgchart-reactflow/
 
 ### Manual Deployment
 
