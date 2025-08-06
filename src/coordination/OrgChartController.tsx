@@ -9,6 +9,7 @@ import { LayoutEngine } from '../layout/LayoutEngine';
 export interface OrgChartControllerProps {
   employees: Employee[];
   children: (controllerState: OrgChartControllerState) => React.ReactNode;
+  fitView?: (() => void) | null;
 }
 
 export interface OrgChartControllerState {
@@ -27,9 +28,11 @@ export interface OrgChartControllerState {
   highlightedNodes: Set<number>;
   handleSearch: (query: string) => void;
   clearSearch: () => void;
+  expandAll: () => void;
+  collapseAll: () => void;
 }
 
-export function OrgChartController({ employees, children }: OrgChartControllerProps) {
+export function OrgChartController({ employees, children, fitView }: OrgChartControllerProps) {
   const [expandedState, setExpandedState] = useState<ExpandedState>({});
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -138,6 +141,49 @@ export function OrgChartController({ employees, children }: OrgChartControllerPr
     setHighlightedNodes(new Set());
   }, []);
 
+  const expandAll = useCallback(() => {
+    if (!orgTree) return;
+    
+    const getAllEmployeeIds = (node: OrgTree): number[] => {
+      const ids = [node.employee.id];
+      node.children.forEach(child => {
+        ids.push(...getAllEmployeeIds(child));
+      });
+      return ids;
+    };
+    
+    const allIds = getAllEmployeeIds(orgTree);
+    const newExpandedState: ExpandedState = {};
+    allIds.forEach(id => {
+      if (getChildrenCount(id) > 0) {
+        newExpandedState[id] = true;
+      }
+    });
+    
+    setExpandedState(newExpandedState);
+    
+    // Fit view after expand all with a delay to allow layout to update
+    setTimeout(() => {
+      if (fitView) {
+        fitView();
+      }
+    }, 200);
+  }, [orgTree, getChildrenCount, fitView]);
+
+  const collapseAll = useCallback(() => {
+    if (!orgTree) return;
+    
+    const initialExpanded = layoutEngine.initializeExpandedState(orgTree);
+    setExpandedState(initialExpanded);
+    
+    // Fit view after collapse all with a delay to allow layout to update
+    setTimeout(() => {
+      if (fitView) {
+        fitView();
+      }
+    }, 200);
+  }, [orgTree, layoutEngine, fitView]);
+
   // Initialize expanded state when org tree changes
   useEffect(() => {
     if (orgTree && Object.keys(expandedState).length === 0) {
@@ -201,6 +247,8 @@ export function OrgChartController({ employees, children }: OrgChartControllerPr
     highlightedNodes,
     handleSearch,
     clearSearch,
+    expandAll,
+    collapseAll,
   };
 
   return <>{children(controllerState)}</>;

@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react';
 import 'reactflow/dist/style.css';
 
 import { Employee } from '../types/employee';
@@ -10,8 +11,14 @@ interface OrgChartProps {
 }
 
 export default function OrgChart({ employees }: OrgChartProps) {
+  const [fitViewFunction, setFitViewFunction] = useState<(() => void) | null>(null);
+
+  const handleFitViewReady = useCallback((fitView: () => void) => {
+    setFitViewFunction(() => fitView);
+  }, []);
+
   return (
-    <OrgChartController employees={employees}>
+    <OrgChartController employees={employees} fitView={fitViewFunction}>
       {(controllerState) => {
         if (!controllerState.orgTree) {
           return <div className="org-chart-error">No organizational data available</div>;
@@ -29,6 +36,9 @@ export default function OrgChart({ employees }: OrgChartProps) {
             searchResults={controllerState.searchResults}
             onSearch={controllerState.handleSearch}
             onClearSearch={controllerState.clearSearch}
+            onExpandAll={controllerState.expandAll}
+            onCollapseAll={controllerState.collapseAll}
+            onFitViewReady={handleFitViewReady}
           />
         );
       }}
